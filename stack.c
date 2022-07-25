@@ -14,7 +14,7 @@ struct stackNode {
 };
 
 struct stack *
-init()
+stackInit()
 {
 	struct stack *tmp = (struct stack *) malloc(sizeof(struct stack));
 	tmp->size = 0;
@@ -23,7 +23,7 @@ init()
 }
 
 void 
-push(struct stack *ptr, void *data)
+stackPush(struct stack *ptr, void *data)
 {
 	struct stackNode *tmp = (struct stackNode *) malloc(sizeof(struct stackNode));
 	tmp->next = ptr->first;
@@ -33,7 +33,7 @@ push(struct stack *ptr, void *data)
 }
 
 void *
-pop(struct stack *ptr)
+stackPop(struct stack *ptr)
 {
 	if (ptr->size > 0) {
 		struct stackNode *tmp = (ptr->first)->next;
@@ -60,12 +60,23 @@ freeStack(struct stack *ptr)
 	free(ptr);
 }
 
+int
+stackSize(struct stack *ptr)
+{
+	return ptr->size;
+}
+
 
 int main() 
 {
-	struct stack *p = init();
-	push(p, "Hello world");
-	push(p, "Bad guy... Duh!");
-	char *data = (char *)pop(p);
+	struct stack *p = stackInit();
+	stackPush(p, "Hello world");
+	stackPush(p, "Bad guy... Duh!");
+	printf("stack's size %d\n", stackSize(p));
+	char *data = (char *)stackPop(p);
+	stackPop(p);
+	stackPop(p);
+	stackPop(p);
+	printf("stack's size %d\n", stackSize(p));
 	printf("%s\n", data);
 }
