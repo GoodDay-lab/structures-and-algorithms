@@ -20,6 +20,7 @@ BinOpPrecedence['+'] = 1
 BinOpPrecedence['-'] = 1
 BinOpPrecedence['*'] = 2
 BinOpPrecedence['/'] = 2
+BinOpPrecedence['^'] = 3
 
 
 def gettok(string):
@@ -44,38 +45,14 @@ def gettok(string):
                 value += string[i]
                 i += 1
             yield (Token.tok_identifier, value)
-        elif char in '+|-|/|*|()|':
+        elif char in '+-/*()^':
             i += 1
             yield (Token.tok_binop, char)
     while True: 
         yield (Token.tok_eof, None)
 
 
-def parse_expression(analyzer, prec=1):
-    """
-    Uses only "+-*/" operations
-    """
-    token, primary = next(analyzer)
-    if (token == Token.tok_eof):
-        return 0
-    lhs = primary
-    last_prec = 2
-    
-    while True:
-        op_token, binop = next(analyzer)
-        if op_token == Token.tok_eof:
-            return lhs
-        op_prec = BinOpPrecedence[binop]
-        
-        if last_prec > op_prec:
-            rhs = parse_expression(analyzer, prec + 1)
-        else:
-            _, rhs = next(analyzer)
-        last_prec = op_prec
-        lhs = {"op": binop, "lhs": lhs, "rhs": rhs}
-
-
-def parse_expression2(analyzer, prec=1):
+def parse_expression2(analyzer, prec=max(BinOpPrecedence.values())):
     """
     Uses onlu "+-*/()" operations
     """
@@ -83,9 +60,9 @@ def parse_expression2(analyzer, prec=1):
     if (token == Token.tok_eof):
         return 0
     
-    lhs = primary if not (token == Token.tok_binop and primary == "(") \
+    lhs = primary if not (primary == "(") \
                   else parse_expression2(analyzer, prec)
-    last_prec = max(BinOpPrecedence.values())
+    last_prec = prec
     
     while True:
         op_token, binop = next(analyzer)
@@ -94,7 +71,7 @@ def parse_expression2(analyzer, prec=1):
         op_prec = BinOpPrecedence[binop]
         
         if last_prec > op_prec:
-            rhs = parse_expression2(analyzer, last_prec + 1)
+            rhs = parse_expression2(analyzer, op_prec)
         else:
             token, rhs = next(analyzer)
             if token == Token.tok_binop and rhs == "(":
@@ -110,6 +87,7 @@ def compute(root):
             case ("-"): return compute(root["lhs"]) - compute(root["rhs"])
             case ("*"): return compute(root["lhs"]) * compute(root["rhs"])
             case ("/"): return compute(root["lhs"]) / compute(root["rhs"])
+            case ("^"): return compute(root["lhs"]) ** compute(root["rhs"])
     else:
         return root
         
