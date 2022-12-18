@@ -22,6 +22,8 @@ BinOpPrecedence['*'] = 2
 BinOpPrecedence['/'] = 2
 BinOpPrecedence['^'] = 3
 
+SymbolTable = {}
+
 
 def gettok(string):
     value = ''
@@ -44,6 +46,7 @@ def gettok(string):
             while i < len(string) and (string[i].isalpha() or string[i].isdigit()):
                 value += string[i]
                 i += 1
+            SymbolTable[value] = None
             yield (Token.tok_identifier, value)
         elif char in '+-/*()^':
             i += 1
@@ -88,6 +91,8 @@ def compute(root):
             case ("*"): return compute(root["lhs"]) * compute(root["rhs"])
             case ("/"): return compute(root["lhs"]) / compute(root["rhs"])
             case ("^"): return compute(root["lhs"]) ** compute(root["rhs"])
+    elif type(root) == str:
+        return float(SymbolTable[root])
     else:
         return root
         
@@ -100,7 +105,11 @@ def compute(root):
 
 string = input("Введите арифметическое выражение: ")
 root = parse_expression2(gettok(string))
+
+for key in SymbolTable:
+    SymbolTable[key] = int(input("Введите число  '%s' = " % (key)))
+
 print("Дерево выражения: %s" % str(root))
 print("Результат работы алгоритма: %f" % compute(root))
-print("Результат работы встроенной функции 'eval()': %f" % eval(string))
+print("Результат работы встроенной функции 'eval()': %f" % eval(string.replace("^", "**")))
 
